@@ -2,6 +2,9 @@
 
 Welcome! This is a collaborative project to build a Minesweeper environment, train reinforcement learning (RL) agents, and explore how well AI can learn to solve this classic puzzle.
 
+📄 [View the full Minesweeper Reinforcement Learning Project Overview](https://docs.google.com/document/d/1jdRhviiIQ986OaboEAeS_cUuFSDCpg6NrCot_lp6pD8/edit?usp=sharing)
+
+
 ## 📐 Project Structure
 
 ```
