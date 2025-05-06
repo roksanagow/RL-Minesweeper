@@ -1,0 +1,5 @@
+board:
+  width: 8
+  height: 8
+  num_mines: 10
+  seed: null  # Set to an int for reproducible boards

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Minesweeper RL</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <h1>Minesweeper RL</h1>
+    <button id="new-game-btn">New Game</button>
+    <button id="watch-agent-btn">Watch Agent Play</button>
+
+    <label for="agent-select">Agent:</label>
+    <select id="agent-select">
+        <option value="random">RandomAgent</option>
+        <!-- Add more options here as you implement new agents -->
+    </select>
+
+    <label>
+        <input type="checkbox" id="show-hint-toggle">
+        Show mass-reveal hints
+      </label>
+      
+
+    <div id="game-status"></div>
+    <div id="board-container"></div>
+
+    <script src="/static/js/game.js"></script>
+</body>
+</html>

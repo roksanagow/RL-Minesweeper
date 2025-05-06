@@ -1,0 +1,11 @@
+agent:
+  name: random
+  save_path: checkpoints/random_agent.pt
+
+training:
+  episodes: 1000
+  board_size: [8, 8]
+  mines: 10
+  reward_shaping: true
+  curriculum: false
+  log_interval: 100
