@@ -1,13 +1,31 @@
 let currentState = null;
+let showHints = false; // Initialize showHints
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("new-game-btn").addEventListener("click", startNewGame);
-    startNewGame();
+    const hintToggle = document.getElementById("show-hint-toggle");
+    showHints = hintToggle.checked; // Initialize based on checkbox state
+    hintToggle.addEventListener("change", () => {
+        showHints = hintToggle.checked;
+        renderBoard(); // Re-render board when hint visibility changes
+    });
+
+    startNewGame(); // Initial game start
 });
 
+function getBoardConfig() {
+    const width = parseInt(document.getElementById("board-width").value);
+    const height = parseInt(document.getElementById("board-height").value);
+    const numMines = parseInt(document.getElementById("num-mines").value);
+    return { width, height, num_mines: numMines };
+}
+
 function startNewGame() {
+    const config = getBoardConfig();
     fetch("/api/new_game", {
-        method: "POST"
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config)
     })
     .then(response => response.json())
     .then(data => {
@@ -127,11 +145,12 @@ function updateStatus() {
 
 function playAgent() {
     const selectedAgent = document.getElementById("agent-select").value;
+    const config = getBoardConfig();
 
     fetch("/api/play_agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agent: selectedAgent })
+        body: JSON.stringify({ agent: selectedAgent, ...config })
     })
     .then(res => res.json())
     .then(data => {
