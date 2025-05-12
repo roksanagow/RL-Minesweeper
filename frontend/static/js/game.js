@@ -76,6 +76,18 @@ function renderBoard() {
                 cellBtn.textContent = "";
             } else if (cell === "F") {
                 cellBtn.textContent = "🚩";
+            } else if (cell === "M") { // Revealed mine (game lost)
+                cellBtn.textContent = "💣";
+                cellBtn.disabled = true;
+                cellBtn.classList.add("revealed", "mine");
+            } else if (cell === "*") { // Exploded mine (the one clicked)
+                cellBtn.textContent = "💥";
+                cellBtn.disabled = true;
+                cellBtn.classList.add("revealed", "mine", "exploded");
+            } else if (cell === "X") { // Incorrectly flagged non-mine
+                cellBtn.textContent = "❌";
+                cellBtn.disabled = true;
+                cellBtn.classList.add("revealed", "misflagged");
             } else {
                 cellBtn.textContent = cell === 0 ? "" : cell;
                 cellBtn.disabled = true;

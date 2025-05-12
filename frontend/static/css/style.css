@@ -47,6 +47,20 @@ h1 {
     cursor: default;
 }
 
+.cell.mine {
+    background-color: #ffdddd; /* Light red for revealed mines */
+}
+
+.cell.exploded {
+    background-color: #ff0000; /* Bright red for the clicked mine */
+    color: white;
+}
+
+.cell.misflagged {
+    background-color: #fff0b3; /* Light yellow for misflagged cells */
+    color: #d9534f; /* Red X */
+}
+
 .mass-reveal-hint {
     box-shadow: 0 0 5px 2px rgba(0, 150, 255, 0.5);
     border-color: #3399ff;

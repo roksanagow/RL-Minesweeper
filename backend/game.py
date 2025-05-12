@@ -43,7 +43,7 @@ class GameSession:
         Return the current visible board and game status.
         """
         return {
-            "board": self.board.get_visible_state(),
+            "board": self.board.get_visible_state(game_over_flag=self.game_over, game_won_flag=self.won),
             "game_over": self.game_over,
             "won": self.won,
             "moves_made": self.moves_made,

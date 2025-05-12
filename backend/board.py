@@ -80,18 +80,42 @@ class MinesweeperBoard:
                     return False
         return True
 
-    def get_visible_state(self):
+    def get_visible_state(self, game_over_flag=False, game_won_flag=False):
         state = []
         for r in range(self.height):
-            row = []
+            row_cells = []
             for c in range(self.width):
-                if self.flags[r][c]:
-                    row.append("F")
-                elif not self.revealed[r][c]:
-                    row.append(None)
+                is_mine_cell = (self.board[r][c] == -1)
+
+                if game_over_flag:
+                    if is_mine_cell:
+                        if game_won_flag:
+                            # Game won, all mines are effectively "flagged"
+                            row_cells.append("F")
+                        else: # Game lost
+                            if self.revealed[r][c] and self.board[r][c] == -1: # This is the mine that was clicked
+                                row_cells.append("*") # Exploded mine
+                            elif self.flags[r][c]: # Correctly flagged mine
+                                row_cells.append("F")
+                            else: # Other unflagged, unrevealed mines
+                                row_cells.append("M")
+                    else: # Not a mine
+                        if self.flags[r][c]: # Incorrectly flagged non-mine
+                            row_cells.append("X")
+                        elif self.revealed[r][c]:
+                            row_cells.append(self.board[r][c])
+                        else:
+                            # Unrevealed non-mine cell in a game over state (loss)
+                            # Show as None (still hidden) or could show its number
+                            row_cells.append(None)
                 else:
-                    row.append(self.board[r][c])
-            state.append(row)
+                    if self.flags[r][c]:
+                        row_cells.append("F")
+                    elif not self.revealed[r][c]:
+                        row_cells.append(None)
+                    else:
+                        row_cells.append(self.board[r][c])
+            state.append(row_cells)
         return state
 
     def print_debug_board(self):
