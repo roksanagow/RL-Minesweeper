@@ -1,11 +1,18 @@
 import random
 
 class MinesweeperBoard:
-    def __init__(self, width, height, num_mines, seed=None):
+    DEFAULT_NEIGHBORS = [
+        (-1, -1), (-1, 0), (-1, 1),
+        (0, -1),          (0, 1),
+        (1, -1), (1, 0), (1, 1)
+    ]
+
+    def __init__(self, width, height, num_mines, seed=None, custom_mask=None):
         self.width = width
         self.height = height
         self.num_mines = num_mines
         self.seed = seed
+        self.custom_mask = custom_mask if custom_mask is not None else self.DEFAULT_NEIGHBORS
 
         self.board = []         # -1 = mine, 0-8 = adjacent mine counts
         self.revealed = []      # bool grid
@@ -37,11 +44,10 @@ class MinesweeperBoard:
                 if self.board[r][c] == -1:
                     continue
                 count = 0
-                for dr in [-1, 0, 1]:
-                    for dc in [-1, 0, 1]:
-                        nr, nc = r + dr, c + dc
-                        if self.is_valid_coord(nr, nc) and self.board[nr][nc] == -1:
-                            count += 1
+                for dr, dc in self.custom_mask:
+                    nr, nc = r + dr, c + dc
+                    if self.is_valid_coord(nr, nc) and self.board[nr][nc] == -1:
+                        count += 1
                 self.board[r][c] = count
 
     def is_valid_coord(self, row, col):
@@ -136,32 +142,34 @@ class MinesweeperBoard:
         if not self.revealed[row][col] and not self.flags[row][col]:
             self.revealed[row][col] = True
             if self.board[row][col] == 0:
-                for dr in [-1, 0, 1]:
-                    for dc in [-1, 0, 1]:
-                        nr, nc = row + dr, col + dc
-                        if (dr != 0 or dc != 0) and self.is_valid_coord(nr, nc):
-                            self.reveal(nr, nc)
+                # Use the custom_mask for 0-reveal flood fill as well,
+                # because the '0' was determined by the custom_mask.
+                for dr, dc in self.custom_mask: 
+                    nr, nc = row + dr, col + dc
+                    if self.is_valid_coord(nr, nc):
+                        self.reveal(nr, nc)
             return self.board[row][col] == -1
 
         # CASE 2: mass reveal (if already revealed and is a number)
         if self.revealed[row][col] and self.board[row][col] > 0:
-            # Count flagged neighbors
+            # Count flagged neighbors according to the custom_mask
             flagged = 0
             to_reveal = []
-            for dr in [-1, 0, 1]:
-                for dc in [-1, 0, 1]:
-                    nr, nc = row + dr, col + dc
-                    if self.is_valid_coord(nr, nc):
-                        if self.flags[nr][nc]:
-                            flagged += 1
-                        elif not self.revealed[nr][nc]:
-                            to_reveal.append((nr, nc))
             
-            # If the number of flags equals the cell's number, reveal remaining
+            # Iterate over neighbors defined by the custom_mask
+            for dr, dc in self.custom_mask:
+                nr, nc = row + dr, col + dc
+                if self.is_valid_coord(nr, nc):
+                    if self.flags[nr][nc]:
+                        flagged += 1
+                    elif not self.revealed[nr][nc]: # Only consider unrevealed, non-flagged cells for mass reveal
+                        to_reveal.append((nr, nc))
+            
+            # If the number of flags (according to mask) equals the cell's number, reveal remaining (according to mask)
             if flagged == self.board[row][col]:
                 mine_hit = False
-                for nr, nc in to_reveal:
-                    if self.reveal(nr, nc):  # Recursive call
+                for nr, nc in to_reveal: # These are neighbors from the custom_mask
+                    if self.reveal(nr, nc):
                         mine_hit = True
                 return mine_hit
         return False

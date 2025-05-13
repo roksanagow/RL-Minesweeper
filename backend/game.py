@@ -7,11 +7,12 @@ class GameSession:
     A wrapper around MinesweeperBoard that manages game state and turn flow.
     """
 
-    def __init__(self, width: int, height: int, num_mines: int, seed: int = None):
+    def __init__(self, width: int, height: int, num_mines: int, seed: int = None, custom_mask: list[tuple[int, int]] | None = None):
         self.width = width
         self.height = height
         self.num_mines = num_mines
         self.seed = seed
+        self.custom_mask = custom_mask
 
         self.reset()
 
@@ -55,7 +56,7 @@ class GameSession:
         """
         Reset the game session to a fresh state with the same parameters.
         """
-        self.board = MinesweeperBoard(self.width, self.height, self.num_mines, self.seed)
+        self.board = MinesweeperBoard(self.width, self.height, self.num_mines, self.seed, self.custom_mask)
         self.game_over = False
         self.won = False
         self.moves_made = 0

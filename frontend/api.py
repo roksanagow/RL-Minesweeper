@@ -15,8 +15,11 @@ def new_game():
     width = data.get("width", 8)
     height = data.get("height", 8)
     num_mines = data.get("num_mines", 10)
+    custom_mask = data.get("custom_mask", None)
+    # print(f"New game request with mask: {custom_mask}") # Debugging
+
     # Global session (for now – can be improved later with user/session IDs)
-    game = GameSession(width=width, height=height, num_mines=num_mines)
+    game = GameSession(width=width, height=height, num_mines=num_mines, custom_mask=custom_mask)
     return jsonify(game.get_state())
 
 
@@ -38,8 +41,6 @@ def step():
 def get_state():
     return jsonify(game.get_state())
 
-# frontend/api.py (add below other endpoints)
-
 from models.random_agent.agent import RandomAgent
 # Future: from models.your_agent.agent import YourAgent
 
@@ -47,32 +48,31 @@ AGENT_REGISTRY = {
     "random": RandomAgent,
     # "your_agent_name": YourAgent,
 }
-
 @api_blueprint.route("/play_agent", methods=["POST"])
-
 def play_agent():
     global game
-    # game.reset() # Reset is now part of creating a new game or happens if config changes
-
     data = request.json
     agent_type = data.get("agent", "random").lower()
     agent_cls = AGENT_REGISTRY.get(agent_type, RandomAgent)
 
-    # Get board config from request, or use current game's if not provided
     width = data.get("width")
     height = data.get("height")
     num_mines = data.get("num_mines")
+    custom_mask = data.get("custom_mask", None)
+
+    # print(f"Agent play request with mask: {custom_mask}") # Debugging
 
     if game is None or \
        (width is not None and game.width != width) or \
        (height is not None and game.height != height) or \
-       (num_mines is not None and game.num_mines != num_mines):
+       (num_mines is not None and game.num_mines != num_mines) or \
+       (custom_mask != game.custom_mask):
         current_width = width if width is not None else (game.width if game else 8)
         current_height = height if height is not None else (game.height if game else 8)
         current_num_mines = num_mines if num_mines is not None else (game.num_mines if game else 10)
-        game = GameSession(width=current_width, height=current_height, num_mines=current_num_mines)
+        game = GameSession(width=current_width, height=current_height, num_mines=current_num_mines, custom_mask=custom_mask)
     else:
-        game.reset() # Reset with existing dimensions if no new ones are provided
+        game.reset()  # Reset with existing dimensions and mask if no new ones are provided
 
     agent = agent_cls()
     frames = []

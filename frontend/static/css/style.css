@@ -48,20 +48,73 @@ h1 {
 }
 
 .cell.mine {
-    background-color: #ffdddd; /* Light red for revealed mines */
+    background-color: #ffdddd;
 }
 
 .cell.exploded {
-    background-color: #ff0000; /* Bright red for the clicked mine */
+    background-color: #ff0000;
     color: white;
 }
 
 .cell.misflagged {
-    background-color: #fff0b3; /* Light yellow for misflagged cells */
-    color: #d9534f; /* Red X */
+    background-color: #fff0b3;
+    color: #d9534f;
 }
 
 .mass-reveal-hint {
     box-shadow: 0 0 5px 2px rgba(0, 150, 255, 0.5);
     border-color: #3399ff;
+}
+
+/* Styles for Custom Mask Grid */
+#custom-mask-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 30px);
+    grid-template-rows: repeat(3, 30px);
+    gap: 2px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    background-color: #f0f0f0;
+    width: fit-content;
+    margin-left: auto;  /* Center the grid */
+    margin-right: auto; /* Center the grid */
+}
+
+.mask-cell {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    background-color: #e0e0e0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.mask-cell.center {
+    background-color: #ccc;
+    cursor: not-allowed;
+    font-weight: bold;
+}
+
+.mask-cell.selectable:hover {
+    background-color: #d0d0d0;
+}
+
+.mask-cell.selected {
+    background-color: #77b5fe;
+    border-color: #5c9ce6;
+}
+
+#custom-mask-grid.disabled .mask-cell.selectable {
+    background-color: #e0e0e0; /* Default non-selected color when disabled */
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+#custom-mask-grid.disabled .mask-cell.selected {
+    background-color: #a0c7f0; /* Lighter blue when disabled but selected */
+    opacity: 0.7;
 }

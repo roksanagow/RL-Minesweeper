@@ -28,6 +28,19 @@
         <input type="checkbox" id="show-hint-toggle">
         Show mass-reveal hints
       </label>
+
+    <div id="custom-mask-controls" style="margin-top: 15px; margin-bottom: 15px;">
+        <label for="enable-custom-mask">
+            <input type="checkbox" id="enable-custom-mask">
+            Enable Custom 3x3 Visibility Mask
+        </label>
+        <div id="custom-mask-grid-container" style="margin-top: 5px;">
+            <p style="font-size: 0.9em; color: #555;">Define active neighbors (blue is active):</p>
+            <div id="custom-mask-grid" class="mask-grid-disabled">
+                <!-- JS will populate this -->
+            </div>
+        </div>
+    </div>
       
 
     <div id="game-status"></div>
