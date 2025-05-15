@@ -7,7 +7,15 @@
 </head>
 <body>
     <h1>Minesweeper RL</h1>
-    <button id="new-game-btn">New Game</button>
+    <div id="game-controls">
+        <label for="board-width">Width:</label>
+        <input type="number" id="board-width" value="8" min="5" max="50">
+        <label for="board-height">Height:</label>
+        <input type="number" id="board-height" value="8" min="5" max="30">
+        <label for="num-mines">Mines:</label>
+        <input type="number" id="num-mines" value="10" min="1">
+        <button id="new-game-btn">New Game</button>
+    </div>
     <button id="watch-agent-btn">Watch Agent Play</button>
 
     <label for="agent-select">Agent:</label>
@@ -20,6 +28,19 @@
         <input type="checkbox" id="show-hint-toggle">
         Show mass-reveal hints
       </label>
+
+    <div id="custom-mask-controls" style="margin-top: 15px; margin-bottom: 15px;">
+        <label for="enable-custom-mask">
+            <input type="checkbox" id="enable-custom-mask">
+            Enable Custom 3x3 Visibility Mask
+        </label>
+        <div id="custom-mask-grid-container" style="margin-top: 5px;">
+            <p style="font-size: 0.9em; color: #555;">Define active neighbors (blue is active):</p>
+            <div id="custom-mask-grid" class="mask-grid-disabled">
+                <!-- JS will populate this -->
+            </div>
+        </div>
+    </div>
       
 
     <div id="game-status"></div>
