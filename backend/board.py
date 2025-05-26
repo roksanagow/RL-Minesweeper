@@ -138,38 +138,48 @@ class MinesweeperBoard:
         if not self.is_valid_coord(row, col):
             return False
 
-        # CASE 1: normal reveal (if not yet revealed)
+        # CASE 1: normal reveal (if not yet revealed and not flagged)
         if not self.revealed[row][col] and not self.flags[row][col]:
             self.revealed[row][col] = True
+            
+            # Check if the current cell itself is a mine
+            if self.board[row][col] == -1:
+                return True # Current cell is a mine
+
+            # If it's a '0', flood fill. Accumulate mine_hit status from recursive calls.
             if self.board[row][col] == 0:
-                # Use the custom_mask for 0-reveal flood fill as well,
+                mine_hit_during_flood_fill = False
+                # Use the custom_mask for 0-reveal flood fill
                 # because the '0' was determined by the custom_mask.
                 for dr, dc in self.custom_mask: 
                     nr, nc = row + dr, col + dc
                     if self.is_valid_coord(nr, nc):
-                        self.reveal(nr, nc)
-            return self.board[row][col] == -1
+                        if self.reveal(nr, nc): 
+                            mine_hit_during_flood_fill = True
+                return mine_hit_during_flood_fill
 
-        # CASE 2: mass reveal (if already revealed and is a number)
+            # If it's a number (1-8), it's revealed, no mine hit by this specific action.
+            return False
+
+        # CASE 2: mass reveal (if already revealed and is a number > 0)
         if self.revealed[row][col] and self.board[row][col] > 0:
-            # Count flagged neighbors according to the custom_mask
             flagged = 0
             to_reveal = []
             
-            # Iterate over neighbors defined by the custom_mask
             for dr, dc in self.custom_mask:
                 nr, nc = row + dr, col + dc
                 if self.is_valid_coord(nr, nc):
                     if self.flags[nr][nc]:
                         flagged += 1
-                    elif not self.revealed[nr][nc]: # Only consider unrevealed, non-flagged cells for mass reveal
+                    elif not self.revealed[nr][nc]: 
                         to_reveal.append((nr, nc))
             
-            # If the number of flags (according to mask) equals the cell's number, reveal remaining (according to mask)
             if flagged == self.board[row][col]:
-                mine_hit = False
-                for nr, nc in to_reveal: # These are neighbors from the custom_mask
+                mine_hit_on_mass_reveal = False
+                for nr, nc in to_reveal:
                     if self.reveal(nr, nc):
-                        mine_hit = True
-                return mine_hit
+                        mine_hit_on_mass_reveal = True
+                return mine_hit_on_mass_reveal
+        
+        # If action is invalid (e.g. revealing flagged cell, or already revealed cell not leading to mass reveal)
         return False
