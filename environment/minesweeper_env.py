@@ -124,20 +124,29 @@ class MinesweeperEnv(gym.Env):
             "game_over": int(result["game_over"])
         }
 
+        terminated = bool(obs["game_over"]) # Initial termination status from win/mine_hit
+
         game_state_for_reward = ""
-        if result["game_over"]:
+        if terminated:
             if result["won"]:
                 game_state_for_reward = "win"
             else:
                 game_state_for_reward = "mine_hit"
-        elif action_type == 0:
-            game_state_for_reward = "safe_reveal"
         else:
-            game_state_for_reward = "flag_action"
+            encoded_board = obs["board"]
+            if not np.any(encoded_board == -3):
+                # All cells are revealed or flagged. Since not a win/mine_hit yet, only move is unflagging which is considered non-ideal
+                terminated = True
+                obs["game_over"] = 1
+                game_state_for_reward = "all_touched_not_won"
+            elif action_type == 0:
+                game_state_for_reward = "safe_reveal"
+            else:
+                game_state_for_reward = "flag_action"
+        
         reward = self.calculate_reward(game_state_for_reward)
 
         info = {} # Initialize info for the step
-        terminated = bool(obs["game_over"])
         if self.render_mode == "human":
             info['frame'] = self._frame_count # Add frame to info if rendering
             self.render()
@@ -212,10 +221,12 @@ class MinesweeperEnv(gym.Env):
         elif game_state == "mine_hit":
             # Penalty for hitting a mine
             return self.R_mine_hit
+        elif game_state == "all_touched_not_won": # all cells acted upon, but not a win
+            return -1.0 # same as losing
         elif game_state == "safe_reveal":
             # Small reward for safe reveal + penalty for each step to encourage efficiency
             return self.R_safe_reveal + self.step_penalty
-        else: # e.g. for a flag action that doesn't end the game
+        else: # e.g. for a flag action ("flag_action") that doesn't end the game
             return 0
     
 if __name__ == "__main__":
