@@ -6,13 +6,18 @@ class GameSession:
     """
     A wrapper around MinesweeperBoard that manages game state and turn flow.
     """
+    DEFAULT_NEIGHBORS = [
+        (-1, -1), (-1, 0), (-1, 1),
+        (0, -1),          (0, 1),
+        (1, -1), (1, 0), (1, 1)
+    ]
 
     def __init__(self, width: int, height: int, num_mines: int, seed: int = None, custom_mask: list[tuple[int, int]] | None = None):
         self.width = width
         self.height = height
         self.num_mines = num_mines
         self.seed = seed
-        self.custom_mask = custom_mask
+        self.custom_mask = self.DEFAULT_NEIGHBORS if custom_mask is None else custom_mask
 
         self.reset()
 
