@@ -229,21 +229,28 @@ class MinesweeperEnv(gym.Env):
         else: # e.g. for a flag action ("flag_action") that doesn't end the game
             return 0
     
+    def get_valid_action(self):
+        """
+        Get a valid action from the action space.
+        This is used to sample actions that are not flagged or revealed.
+        """
+        action = self.action_space.sample()
+        while not self.is_valid_action(action):
+            action = self.action_space.sample()
+        return action
+
 if __name__ == "__main__":
-    env = gym.make("Minesweeper-v0", render_mode="human", seed=42, fps=4)
+    env = gym.make("Minesweeper-v0", render_mode="human", seed=42, fps=10, num_mines=15, board_size=(20, 6))
     # print("Start environment check")
     # check_env(env.unwrapped)
     # print("Environment is valid!")
     
     # Example usage
     obs, info = env.reset()
-    env.render()
     print("Initial Observation:", obs, info)
     terminated = False
     while True:
-        action = env.action_space.sample()
-        while not env.unwrapped.is_valid_action(action):
-            action = env.action_space.sample()
+        action = env.unwrapped.get_valid_action()
         print("Action Sampled:", action)
         obs, reward, terminated, truncated, info = env.step(action)
         print("Step Result:", obs, reward, terminated, truncated, info)
