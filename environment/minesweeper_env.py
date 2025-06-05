@@ -38,20 +38,23 @@ class MinesweeperEnv(gym.Env):
         """
         
         self.observation_space = spaces.Dict({
-            "board": spaces.Box(low=-3, high=8, shape=(self.board_height, self.board_width), dtype=int),
+            "board": spaces.Box(low=-4, high=8, shape=(self.board_height, self.board_width), dtype=int),
             "visibility_mask": spaces.Box(low=-1, high=1, shape=(8, 2), dtype=int),
             "num_mines": spaces.Discrete(self.num_mines + 1),
             "game_over": spaces.Discrete(2)
         })
 
         self.max_possible_moves = self.board_width * self.board_height - self.num_mines
-        self.step_efficiency_bonus = 0.1
-        self.R_win = 1.0
-        self.R_mine_hit = -1.0
-        self.R_safe_reveal = 0.1
-        self.step_penalty = -0.01
+        self.step_efficiency_bonus = 0.5
+        self.R_win = 10.0
+        self.R_mine_hit = -10.0
+        self.R_safe_reveal = 3
+        self.step_penalty = -0.5
+        self.exceed_flags = -20.0
+        self.false_flag_penalty = -1
         self.moves_taken = 0
         self._episode_count = 0
+        self.num_current_flags = 0
 
         if self.render_mode == "human":
             self._init_pygame()
@@ -92,7 +95,7 @@ class MinesweeperEnv(gym.Env):
         self.game.reset()
         self.moves_taken = 0
         self._episode_count += 1 # Increment episode count
-
+        self.num_current_flags = 0
         if self.render_mode == "human":
             self._frame_count = 0
 
@@ -116,6 +119,8 @@ class MinesweeperEnv(gym.Env):
         result = self.game.step(action_str, row, col)
         if action_str == "reveal":
             self.moves_taken += 1
+        else:
+            self.num_current_flags += 1
 
         obs = {
             "board": self.get_encoded_board(),
@@ -146,6 +151,9 @@ class MinesweeperEnv(gym.Env):
         
         reward = self.calculate_reward(game_state_for_reward)
 
+        if self.num_current_flags > self.num_mines:
+            terminated = True
+
         info = {} # Initialize info for the step
         if self.render_mode == "human":
             info['frame'] = self._frame_count # Add frame to info if rendering
@@ -162,8 +170,6 @@ class MinesweeperEnv(gym.Env):
                     sprite = self.sprites["cellup"]
                 elif cell_value == "F":
                     sprite = self.sprites["cellflag"]
-                elif cell_value == -1:
-                    sprite = self.sprites["cellmine"]
                 elif cell_value == "*":
                     sprite = self.sprites["blast"]
                 elif cell_value == "X":
@@ -197,8 +203,15 @@ class MinesweeperEnv(gym.Env):
                     encoded_row.append(-3)  # Unrevealed
                 elif cell == "F":
                     encoded_row.append(-2)  # Flagged
+                elif cell == "*":
+                    encoded_row.append(-1)
+                elif cell == "M":
+                    encoded_row.append(-1)  # Mine when game over
+                elif cell == "X":
+                    encoded_row.append(-4)  # Incorrectly flagged non-mine, revealed when game over
                 else:
-                    encoded_row.append(cell)  # Revealed number or mine
+                    encoded_row.append(cell)
+
             encoded_board.append(encoded_row)
 
         return np.array(encoded_board)
@@ -214,13 +227,17 @@ class MinesweeperEnv(gym.Env):
         return True
     
     def calculate_reward(self, game_state):
+        if self.num_current_flags > self.num_mines:
+            return self.exceed_flags
         if game_state == "win":
             # Reward for winning, scaled by efficiency (fewer moves = higher reward)
             efficiency_bonus = (self.max_possible_moves - self.moves_taken) * self.step_efficiency_bonus
             return self.R_win + efficiency_bonus
         elif game_state == "mine_hit":
+            board = self.get_encoded_board()
+            num_false_flags = np.count_nonzero(board == -4)
             # Penalty for hitting a mine
-            return self.R_mine_hit
+            return self.R_mine_hit + self.false_flag_penalty * num_false_flags
         elif game_state == "all_touched_not_won": # all cells acted upon, but not a win
             return -1.0 # same as losing
         elif game_state == "safe_reveal":
@@ -229,21 +246,28 @@ class MinesweeperEnv(gym.Env):
         else: # e.g. for a flag action ("flag_action") that doesn't end the game
             return 0
     
+    def get_valid_action(self):
+        """
+        Get a valid action from the action space.
+        This is used to sample actions that are not flagged or revealed.
+        """
+        action = self.action_space.sample()
+        while not self.is_valid_action(action):
+            action = self.action_space.sample()
+        return action
+
 if __name__ == "__main__":
-    env = gym.make("Minesweeper-v0", render_mode="human", seed=42, fps=4)
-    # print("Start environment check")
-    # check_env(env.unwrapped)
-    # print("Environment is valid!")
+    env = gym.make("Minesweeper-v0", render_mode="human", seed=42, fps=10, num_mines=15, board_size=(20, 6))
+    print("Start environment check")
+    check_env(env.unwrapped)
+    print("Environment is valid!")
     
     # Example usage
     obs, info = env.reset()
-    env.render()
     print("Initial Observation:", obs, info)
     terminated = False
     while True:
-        action = env.action_space.sample()
-        while not env.unwrapped.is_valid_action(action):
-            action = env.action_space.sample()
+        action = env.unwrapped.get_valid_action()
         print("Action Sampled:", action)
         obs, reward, terminated, truncated, info = env.step(action)
         print("Step Result:", obs, reward, terminated, truncated, info)
